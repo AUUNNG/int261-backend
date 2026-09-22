@@ -1,0 +1,21 @@
+# Build and dependency directories
+**/target/
+**/build/
+**/.gradle/
+
+# IDE files
+**/.idea/
+**/*.iml
+**/*.iws
+**/*.ipr
+**/.vscode/
+**/.classpath
+**/.project
+**/.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
