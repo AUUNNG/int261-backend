@@ -1,26 +1,34 @@
 package sit.int261.dtodemo.dtos;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 @Getter
-@Setter @NoArgsConstructor @AllArgsConstructor
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class PageResponse<T> {
     private List<T> content;
-    private Boolean last;
-    private Boolean first;
+    private Integer pageNumber;
+    private Integer pageSize;
+    private Long totalElements;
     private Integer totalPages;
-    private Integer totalElements;
-    private Integer size;
-    @JsonIgnore
-    private Integer number;
-    public Integer getPage() {
-        return number;
+
+    @JsonProperty("isLast")
+    private Boolean isLast;
+
+    public static <T> PageResponse<T> from(Page<?> page, List<T> content) {
+        return PageResponse.<T>builder()
+                .content(content)
+                .pageNumber(page.getNumber())
+                .pageSize(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .isLast(page.isLast())
+                .build();
     }
 }
