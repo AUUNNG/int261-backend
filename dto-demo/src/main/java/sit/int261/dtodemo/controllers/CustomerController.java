@@ -2,26 +2,42 @@ package sit.int261.dtodemo.controllers;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import sit.int261.dtodemo.dtos.CustomerSalesProfileDto;
 import sit.int261.dtodemo.dtos.PageResponse;
 import sit.int261.dtodemo.dtos.SimpleCustomerResponse;
 import sit.int261.dtodemo.entities.Customer;
 import sit.int261.dtodemo.repositories.CustomerRepository;
-
-import java.util.List;
+import sit.int261.dtodemo.services.CustomerService;
 
 @RestController
-@RequestMapping("/customers")
+@RequestMapping({"/api/v1/customers", "/customers"})
 public class CustomerController {
+
     @Autowired
     private CustomerRepository customerRepo;
+
+    @Autowired
+    private CustomerService customerService;
+
     @Autowired
     private ModelMapper modelMapper;
+
+    @GetMapping
+    public ResponseEntity<PageResponse<CustomerSalesProfileDto>> getCustomers(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "customerName") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String country
+    ) {
+        PageResponse<CustomerSalesProfileDto> response = customerService.getCustomers(page, size, sortBy, sortDir, keyword, country);
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<SimpleCustomerResponse> getCustomer(@PathVariable Integer id) {
@@ -32,24 +48,5 @@ public class CustomerController {
         );
         SimpleCustomerResponse simpleCustomer = modelMapper.map(customer, SimpleCustomerResponse.class);
         return ResponseEntity.ok(simpleCustomer);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<SimpleCustomerResponse>> getCustomers() {
-        List<Customer> customers = customerRepo.findAll();
-        List<SimpleCustomerResponse> simpleCustomers = customers.stream()
-        .map(e -> modelMapper
-                .map(e, SimpleCustomerResponse.class)).toList();
-        return ResponseEntity.ok(simpleCustomers);
-    }
-
-    @GetMapping("/page")
-    public Object getCustomerPage(Pageable pageable) {
-        Page<Customer> customerPage = customerRepo.findAll(pageable);
-        List<SimpleCustomerResponse> content =  customerPage.getContent().stream()
-                .map(e -> modelMapper.map(e, SimpleCustomerResponse.class)).toList();
-        PageResponse<SimpleCustomerResponse> customer = modelMapper.map(customerPage, PageResponse.class);
-        customer.setContent(content);
-        return customer;
     }
 }
