@@ -5,11 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import sit.int261.dtodemo.dtos.CustomerSalesProfileDto;
 import sit.int261.dtodemo.dtos.PageResponse;
 import sit.int261.dtodemo.dtos.SimpleCustomerResponse;
 import sit.int261.dtodemo.entities.Customer;
+import sit.int261.dtodemo.exceptions.ErrorResponse;
 import sit.int261.dtodemo.repositories.CustomerRepository;
 import sit.int261.dtodemo.services.CustomerService;
 
@@ -49,4 +52,12 @@ public class CustomerController {
         SimpleCustomerResponse simpleCustomer = modelMapper.map(customer, SimpleCustomerResponse.class);
         return ResponseEntity.ok(simpleCustomer);
     }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    @ResponseStatus(code = HttpStatus.NOT_FOUND)
+    public ResponseEntity handleResponseStatus(ResponseStatusException e) {
+        ErrorResponse errorResponse = new ErrorResponse(e.getStatusCode().value(), e.getMessage(), "/customers/{id}");
+        return  ResponseEntity.status(e.getStatusCode()).body(errorResponse);
+    }
+
 }

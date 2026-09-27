@@ -52,6 +52,8 @@ public class EmployeeService {
             );
         };
 
+        System.out.println("spec: " + spec);
+
         Page<Employee> employeePage = employeeRepository.findAll(spec, pageable);
 
         List<EmployeeSummaryDto> content = employeePage.getContent().stream()
