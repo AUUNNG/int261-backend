@@ -12,13 +12,15 @@ public class SimpleCustomerResponse {
     private String phone;
     private String city;
     private String country;
+    private String salesPerson;
+
 //    @JsonIgnore
     private SimpleEmployeeResponse salesRepEmployee;
-//    private String salesPerson;
 
-//    public String getSalePerson () {
-//        return salesRepEmployee==null ? "-": salesRepEmployee.getFirstName() + " " + salesRepEmployee.getLastName();
+//    public String getSalePerson() {
+//        return salesRepEmployee==null?"-":
+//                salesRepEmployee.getFirstName() + ' ' +
+//                        salesRepEmployee.getLastName();
 //    }
-
 }
 

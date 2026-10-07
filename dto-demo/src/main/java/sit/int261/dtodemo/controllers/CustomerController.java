@@ -1,63 +1,102 @@
 package sit.int261.dtodemo.controllers;
 
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
-import sit.int261.dtodemo.dtos.CustomerSalesProfileDto;
+import sit.int261.dtodemo.dtos.NewCustomerDto;
 import sit.int261.dtodemo.dtos.PageResponse;
 import sit.int261.dtodemo.dtos.SimpleCustomerResponse;
 import sit.int261.dtodemo.entities.Customer;
-import sit.int261.dtodemo.exceptions.ErrorResponse;
-import sit.int261.dtodemo.repositories.CustomerRepository;
 import sit.int261.dtodemo.services.CustomerService;
+import sit.int261.dtodemo.exception.ErrorResponse;
+
+import java.util.List;
+import java.util.Objects;
 
 @RestController
-@RequestMapping({"/api/v1/customers", "/customers"})
+@RequestMapping("/customers")
 public class CustomerController {
-
-    @Autowired
-    private CustomerRepository customerRepo;
-
-    @Autowired
-    private CustomerService customerService;
 
     @Autowired
     private ModelMapper modelMapper;
 
-    @GetMapping
-    public ResponseEntity<PageResponse<CustomerSalesProfileDto>> getCustomers(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(defaultValue = "customerName") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String country
-    ) {
-        PageResponse<CustomerSalesProfileDto> response = customerService.getCustomers(page, size, sortBy, sortDir, keyword, country);
-        return ResponseEntity.ok(response);
+    @Autowired
+    private CustomerService customerService;
+
+    @PostMapping
+    public ResponseEntity<Object> createCustomer(@Valid @RequestBody NewCustomerDto newCustomerDto){
+        return ResponseEntity.ok(
+                modelMapper.map(customerService.createCustomer((newCustomerDto)), SimpleCustomerResponse.class)
+        );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SimpleCustomerResponse> getCustomer(@PathVariable Integer id) {
-        Customer customer = customerRepo.findById(id).orElseThrow(
-                () -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Customer with id " + id + " not found"
-                )
+    public ResponseEntity<SimpleCustomerResponse> getCustomer(
+            @PathVariable Integer id) {
+
+        Customer customer = customerService.getCustomerById(id);
+
+        SimpleCustomerResponse simpleCustomer = modelMapper.map(
+                customer,
+                SimpleCustomerResponse.class
         );
-        SimpleCustomerResponse simpleCustomer = modelMapper.map(customer, SimpleCustomerResponse.class);
+
         return ResponseEntity.ok(simpleCustomer);
     }
 
-    @ExceptionHandler(ResponseStatusException.class)
-    @ResponseStatus(code = HttpStatus.NOT_FOUND)
-    public ResponseEntity handleResponseStatus(ResponseStatusException e) {
-        ErrorResponse errorResponse = new ErrorResponse(e.getStatusCode().value(), e.getMessage(), "/customers/{id}");
-        return  ResponseEntity.status(e.getStatusCode()).body(errorResponse);
+
+    @GetMapping
+    public ResponseEntity<List<SimpleCustomerResponse>> getCustomers() {
+
+        List<Customer> customers = customerService.getCustomers();
+
+        List<SimpleCustomerResponse> simpleCustomers = customers.stream()
+                .map(e -> modelMapper.map(
+                        e,
+                        SimpleCustomerResponse.class
+                ))
+                .toList();
+
+        return ResponseEntity.ok(simpleCustomers);
     }
 
+    @GetMapping("/page")
+    public PageResponse<SimpleCustomerResponse> getCustomersPage(
+            Pageable pageable) {
+
+        Page<Customer> customerPage =
+                customerService.getCustomers(pageable);
+
+        List<SimpleCustomerResponse> contents =
+                customerPage.getContent().stream()
+                        .map(e -> modelMapper.map(
+                                e,
+                                SimpleCustomerResponse.class
+                        ))
+                        .toList();
+
+        PageResponse<SimpleCustomerResponse> customers =
+                modelMapper.map(
+                        customerPage,
+                        PageResponse.class
+                );
+
+        customers.setContent(contents);
+
+        return customers;
+    }
+
+//    @ExceptionHandler(ResponseStatusException.class)
+//    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e) {
+//        ErrorResponse errorResponse = new ErrorResponse(
+//                e.getStatusCode().value(), e.getMessage(),"/customers/{id}"
+//        );
+//        errorResponse.setStackTrace("X1295C");
+//        return ResponseEntity.status(e.getStatusCode()).body(errorResponse);
+//    }
 }

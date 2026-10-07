@@ -1,8 +1,10 @@
 package sit.int261.dtodemo.dtos;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
-import org.springframework.data.domain.Page;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -10,25 +12,16 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class PageResponse<T> {
     private List<T> content;
-    private Integer pageNumber;
-    private Integer pageSize;
-    private Long totalElements;
+    private Boolean last;
+    private Boolean first;
     private Integer totalPages;
-
-    @JsonProperty("isLast")
-    private Boolean isLast;
-
-    public static <T> PageResponse<T> from(Page<?> page, List<T> content) {
-        return PageResponse.<T>builder()
-                .content(content)
-                .pageNumber(page.getNumber())
-                .pageSize(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .isLast(page.isLast())
-                .build();
+    private Integer totalElements;
+    private Integer size;
+    @JsonIgnore
+    private Integer number;
+    public Integer getPage() {
+        return number;
     }
 }

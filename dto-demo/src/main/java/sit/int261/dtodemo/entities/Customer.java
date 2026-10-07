@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "customers")
 public class Customer {
+
     @Id
     @Column(name = "customerNumber", nullable = false)
     private Integer id;
@@ -51,6 +52,4 @@ public class Customer {
 
     @Column(name = "creditLimit", precision = 10, scale = 2)
     private BigDecimal creditLimit;
-
-
 }
