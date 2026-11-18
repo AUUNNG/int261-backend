@@ -11,17 +11,25 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import sit.int261.authserver.authentication.JwtAuthenticationEntryPoint;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @EnableWebSecurity
 @Configuration
 public class AuthServiceWebSecurityConfig {
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return Argon2PasswordEncoder
@@ -50,8 +58,33 @@ public class AuthServiceWebSecurityConfig {
 //                        .requestMatchers("/api/auth/jwks").permitAll()
 //                        .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().permitAll())
-                .exceptionHandling(ex->ex.authenticationEntryPoint(
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(
                         jwtAuthenticationEntryPoint))
                 .build();
+    }
+
+    @Bean
+    JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtAuthenticationConverter converter =
+                new JwtAuthenticationConverter();
+
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            List<Map<String, Object>> entries =
+                    jwt.getClaim("authorities");
+
+            if (entries == null) {
+                return List.<GrantedAuthority>of();
+            }
+
+            return entries.stream()
+                    .map(entry -> (String) entry.get("role"))
+                    .filter(Objects::nonNull)
+                    .filter(value -> !value.isBlank())
+                    .map(value ->
+                            (GrantedAuthority) new SimpleGrantedAuthority(value))
+                    .toList();
+        });
+
+        return converter;
     }
 }

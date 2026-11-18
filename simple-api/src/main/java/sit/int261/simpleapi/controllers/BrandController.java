@@ -1,6 +1,8 @@
 package sit.int261.simpleapi.controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,7 +13,9 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/brands")
+@EnableMethodSecurity
 class BrandController {
+    @PreAuthorize("hasAnyAuthority('brand:crud')")
     @GetMapping
     public List<String> getBrand() {
         return List.of("Brand 1", "Brand 2", "Brand 3", "Brand 4", "Brand 5");

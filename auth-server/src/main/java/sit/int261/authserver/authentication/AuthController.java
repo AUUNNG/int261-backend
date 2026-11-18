@@ -40,8 +40,9 @@ public class AuthController {
         if(kid == null)
             kid = "K-1001";
         System.out.println("kid: " + kid);
-        Map<String, Object> publicKey = Map.of("keys", List.of(authService.getPublicKey(kid).toJSONObject()));
-//        return ResponseEntity.ok(authService.getPublicKey(kid).toJSONObject());
+        Map<String,Object> publicKey = Map.of(
+                "keys", List.of(authService.getPublicKey(kid).toJSONObject())
+        );
         return ResponseEntity.ok(publicKey);
     }
 }
